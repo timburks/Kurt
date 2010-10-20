@@ -1,0 +1,89 @@
+
+Kurt is a small portable web server for use with Nu.
+
+It is based on the libevent event notification library
+(http://monkey.org/~provos/libevent/), and has been tested
+on OS X 10.5 and Linux (Ubuntu-7.10) systems. 
+	
+REQUIREMENTS
+
+Kurt requires Nu and nuke, the Nu build tool. To obtain
+Nu, please visit http://programming.nu or get the source
+from the Nu git repository on github:
+	http://github.com/timburks/nu
+	
+Kurt requires libevent. Before building Kurt, please 
+be sure that libevent is installed on your system. The
+default build configuration expects libevent to be installed
+in /usr/local.
+
+Helpers for working with URL query strings have been 
+factored out into a separate project, NuHTTPHelpers, 
+which is now required to run Kurt.
+
+On Linux systems, Kurt requires an implementation of the
+Foundation classes. It is has been successfully used with
+the GNUStep base library on Debian Linux systems.
+	
+The primary Kurt repository is on github:
+	http://github.com/timburks/kurt
+	
+INSTALLATION
+
+After installing all prerequisites, build the Kurt framework
+by typing "nuke" in the top-level Kurt directory.
+
+AN EXAMPLE
+
+Let's start with the simplest possible Kurt app:
+
+==============================================
+#!/usr/local/bin/nush
+(load "Kurt")
+
+(get "/"
+	"hello!")
+
+(Kurt run)
+==============================================
+
+Kurt can also be run from the command line using the "kurtd" 
+(kurt daemon) script.  kurtd accepts arguments that can
+be used to specify a port and a site description. 
+
+But the recommended way to run Kurt services is by writing
+them in a single file, as above, with components factored
+out into subfiles as deemed necessary. A sample such instance
+is in the sample directory in the "sampled" file. To run
+it, just run:
+	sampled
+	
+The sample site is very simple, but illustrates the processing 
+of GET and POST requests and the basics of response generation, 
+including the use of cookies.
+
+INFLUENCES
+
+Kurt is modeled on Blake Mizerany's Sinatra, 
+	http://sinatra.rubyforge.org/
+but has the clarity and transparency of implementation
+that can only be achieved with Objective-C and Nu.
+
+Kurt is named after your favorite famous Kurt: Vonnegut,
+Cobain, even Russell if you like, and this definition from
+the American Heritage Dictionary of the English Language:
+
+curt (kûrt)
+1. Rudely brief or abrupt, as in speech or manner. See Synonyms at gruff.
+2. Using few words; terse.
+3. Having been shortened.
+
+In an earlier, more verbose era, Kurt was known as Nunja.
+
+AUTHOR
+
+Kurt was written by Tim Burks.
+
+Kurt is released under the Apache License, version 2.0.
+
+Copyright 2010, Neon Design Technology, Inc.

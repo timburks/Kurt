@@ -1,0 +1,291 @@
+#!/usr/local/bin/nush
+;;
+;; @file       sampled
+;; @discussion Sample site demonstrating the Kurt web server.
+;; @copyright  Copyright (c) 2010 Tim Burks, Neon Design Technology, Inc.
+;;
+;;   Licensed under the Apache License, Version 2.0 (the "License");
+;;   you may not use this file except in compliance with the License.
+;;   You may obtain a copy of the License at
+;;
+;;       http://www.apache.org/licenses/LICENSE-2.0
+;;
+;;   Unless required by applicable law or agreed to in writing, software
+;;   distributed under the License is distributed on an "AS IS" BASIS,
+;;   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+;;   See the License for the specific language governing permissions and
+;;   limitations under the License.
+
+(load "Kurt")
+(load "NuHTTPHelpers")
+(load "NuMarkup:xhtml")
+
+;; @class UserCookie
+;; @discussion A class for managing user-identifying cookies.
+(class UserCookie is NSObject
+     (ivars)
+     (ivar-accessors)
+     
+     ;; Generate a random identifier for use in a cookie.
+     (+ (id) randomIdentifier is
+        "#{((random) stringValue)}#{((random) stringValue)}#{((random) stringValue)}#{((random) stringValue)}")
+     
+     ;; Construct a cookie for a specified user.
+     (+ (id) cookieForUser:(id) user is
+        ((self alloc) initWithUser:user
+         value:(self randomIdentifier)
+         expiration:(NSDate dateWithTimeIntervalSinceNow:3600)))
+     
+     ;; Initialize a cookie for a specified user.
+     (- (id) initWithUser:(id) user value:(id) value expiration:(id) expiration is
+        (super init)
+        (set @name "session")
+        (set @user user)
+        (set @value value)
+        (set @expiration expiration)
+        (set @stringValue nil)
+        self)
+     
+     ;; Get a string description of a cookie.
+     (- (id) description is
+        "cookie=#{@name} value=#{@value} user=#{@user} expiration=#{(@expiration rfc822)}")
+     
+     ;; Get a string value for a cookie suitable for inclusion in a response header.
+     (- (id) stringValue is "#{@name}=#{@value}; Expires:#{(@expiration rfc1123)}; Path=/"))
+
+;; global variables
+(set sessionCookies (dict))
+(set friends (array))
+
+(macro htmlpage (title body)
+     `(progn (REQUEST setContentType:"text/html")
+             (&html (&head (&title ,title))
+                    (&body ,body))))
+
+
+;; front page.
+(get "/"
+     (set sessionCookieName ((REQUEST cookies) session:))
+     (set sessionCookie (if sessionCookieName (then (sessionCookies sessionCookieName)) (else nil)))
+     (set user (sessionCookie user))
+     (htmlpage "Friends"
+          (&div
+               (&h1 "Hello!")
+               (&p "Let's make a list.")
+               (if user
+                   (then (&& (&h2 "Your friends")
+                             (&ul
+                                 (friends map:
+                                          (do (friend)
+                                              (set deletion ((dict "name" (friend "name")) urlQueryString))
+                                              (&li (friend name:) "(" (friend email:) ") ("
+                                                   (&a href:(+ "/delete?" deletion) "X") ")")))
+                                 (&li (&a href:"/addfriend" "Add a friend")))
+                             (&hr)
+                             (&p "You are logged in as " user ". " (&a href:"/logout" "Log out."))))
+                   (else (&form action:"/login" method:"post"
+                                (&p "First, please sign in.")
+                                (&label for:"username" "username: ")
+                                (&input type:"text" name:"username")
+                                (&br)
+                                (&label for:"password" "password: ")
+                                (&input type:"password" name:"password")
+                                (&br)
+                                (&input type:"submit")))))))
+
+;; login page.
+(get "/login"
+     (htmlpage "Log in"
+          (&form action:"/login" method:"post"
+                 (&p "Please sign in.")
+                 (&label for:"username" "username: ")
+                 (&input type:"text" name:"username")
+                 (&br)
+                 (&label for:"password" "password: ")
+                 (&input type:"password" name:"password")
+                 (&br)
+                 (&input type:"submit" value:"Submit"))))
+
+;; login POST handler.
+(post "/login"
+      (set RESPONSE (dict))
+      (set post (REQUEST post))
+      (if (eq (post "response") "Cancel")
+          (then
+               (REQUEST redirectResponseToLocation:"/"))
+          (else
+               (set username (post "username"))
+               (set password (post "password"))
+               (if (and (> (username length) 0) (eq username password))
+                   (then
+                        (set sessionCookie (UserCookie cookieForUser:username))
+                        (sessionCookies setObject:sessionCookie forKey:(sessionCookie value))
+                        (REQUEST setValue:(sessionCookie stringValue) forResponseHeader:"Set-Cookie")
+                        (REQUEST redirectResponseToLocation:"/"))
+                   (else
+                        (htmlpage "Please try again"
+                             (&div
+                                  (&p "Invalid Password. Your password is your username.")
+                                  (&form action:"/login" method:"post"
+                                         (&p "Please sign in.")
+                                         (&label for:"username" "username: ")
+                                         (&input type:"text" name:"username")
+                                         (&br)
+                                         (&label for:"password" "password: ")
+                                         (&input type:"password" name:"password")
+                                         (&br)
+                                         (&input type:"submit" name:"response" value:"Submit")
+                                         (&input type:"submit" name:"response" value:"Cancel")))))))))
+
+
+;; logout, also with a GET. In the real world, we would prefer a POST.
+(get "/logout"
+     (set sessionCookieName ((REQUEST cookies) "session"))
+     (if sessionCookieName (sessionCookies removeObjectForKey:sessionCookieName))
+     (REQUEST redirectResponseToLocation:"/"))
+
+;; add-a-friend page.
+(get "/addfriend"
+     (htmlpage "Add a friend"
+          (&div
+               (&h1 "Add a friend")
+               (&form action:"/addfriend" method:"post"
+                      (&p
+                         (&label for:"name" "name:")
+                         (&input type:"text" name:"name")
+                         (&br)
+                         (&label for:"email" "email: ")
+                         (&input type:"text" name:"email")(&br)
+                         (&input type:"submit" name:"response" value:"Submit")
+                         (&input type:"submit" name:"response" value:"Cancel"))))))
+
+;; add-a-friend POST handler.
+(post "/addfriend"
+      (set post (REQUEST post))
+      (if (eq (post "response") "Submit")
+          (friends << (dict name:(post "name") email:(post "email"))))
+      (REQUEST redirectResponseToLocation:"/"))
+
+;; delete-a-friend with a GET. Strictly, this should be a post, but we use a get to show how it would be done.
+(get "/delete"
+     (set post (REQUEST query))
+     (set friends (friends select:(do (friend) (!= (friend "name") (post "name")))))
+     (REQUEST redirectResponseToLocation:"/"))
+
+(get "/about"
+     (htmlpage "About"
+          (&div
+               (&h1 "About this site")
+               (&p "It is running on Kurt!"))))
+
+;; image uploads
+(post "/postimage"
+      (set RESPONSE (dict))
+      (puts (REQUEST description))
+      (set postBody (REQUEST body))
+      (puts ((REQUEST requestHeaders) description))
+      (set contentType ((REQUEST requestHeaders) "Content-Type"))
+      (set boundary ((contentType componentsSeparatedByString:"=") lastObject))
+      (set postDictionary (postBody multipartDictionaryWithBoundary:boundary))
+      (puts ((postDictionary allKeys) description))
+      (set image (postDictionary objectForKey:"image"))
+      (set data (image objectForKey:"data"))
+      (data writeToFile:"image.png" atomically:NO)
+      (htmlpage "Thank you"
+           (&div (&p "Thanks for uploading!")
+                 (&pre ((postDictionary allKeys) description)))))
+
+;; multipart form upload
+;; curl -F "file1=@README" -F "file2=@LICENSE" http://localhost:3000/multipart
+(post "/multipart"
+      (set RESPONSE (dict))
+      (puts (REQUEST description))
+      (set postBody (REQUEST body))
+      (puts ((REQUEST requestHeaders) description))
+      (set contentType ((REQUEST requestHeaders) "Content-Type"))
+      (set boundary ((contentType componentsSeparatedByString:"=") lastObject))
+      (set postDictionary (postBody multipartDictionaryWithBoundary:boundary))
+      (htmlpage "Thank you"
+           (&div (&p "Thanks for uploading!")
+                 (&pre (postDictionary description)))))
+
+;; large file download
+(get "/data/size:"
+     (REQUEST setValue:"application/octet-stream" forResponseHeader:"Content-Type")
+     (set size ((REQUEST bindings) size:))
+     (set megabytes (if (eq size "") (then 1) (else (size doubleValue))))
+     (if (> megabytes 256)
+         (then (puts "too large. sending 1 byte instead.")
+               (set data (NSData dataWithSize:1)))
+         (else (set data (NSData dataWithSize:(* megabytes 1024 1024)))))
+     data)
+
+(global upload-count 0)
+
+(post "/upload"
+      (REQUEST setValue:"text/plain" forResponseHeader:"Content-Type")
+      (set response "uploading item #{(global upload-count (+ upload-count 1))}\n#{((NSDate date) description)}\n")
+      (response appendString:((REQUEST requestHeaders) description))
+      (response appendString:"\n")
+      response)
+
+;; TESTED ACTIONS - the following handlers are tested by Kurt unit tests and should not be changed lightly
+(get "/hello"
+     "hello")
+
+(get "/recycle.ico"
+     (REQUEST setValue:"application/icon" forResponseHeader:"Content-Type")
+     (NSData dataWithContentsOfFile:"public/favicon.ico"))
+
+(get "/follow/me:"
+     (REQUEST setValue:"text/plain" forResponseHeader:"Content-Type")
+     (+ "/follow/" ((REQUEST bindings) "me")))
+
+(get "/a:/before/b:"
+     (REQUEST setValue:"text/plain" forResponseHeader:"Content-Type")
+     (+ "/" ((REQUEST bindings) "b") "/after/" ((REQUEST bindings) "a")))
+
+(get "/get"
+     (set q (REQUEST query))
+     (set a (((q allKeys) sort) map:
+             (do (key)
+                 (+ key ":" (q key)))))
+     (a componentsJoinedByString:","))
+
+(post "/post"
+      (set q (REQUEST post))
+      (set a (((q allKeys) sort) map:
+              (do (key)
+                  (+ key ":" (q key)))))
+      (a componentsJoinedByString:","))
+
+(get "/foo/rest:"
+     ((REQUEST bindings) rest:))
+
+(get-404
+        "Resource Not Found: #{(REQUEST path)}")
+
+(get "/ls"
+     (set path ((REQUEST query) path:))
+     (unless path (set path "."))
+     (REQUEST setContentType:"text/plain")
+     (((NSFileManager defaultManager) contentsOfDirectoryAtPath:path error:nil) description))
+
+(get "/x/y/*z:"
+     (REQUEST setContentType:"text/plain")
+     (puts "aborting")
+     nil)
+
+(get "/x/y/z/*foo:"
+     (REQUEST setContentType:"text/plain")
+     ((REQUEST bindings) *foo:))
+
+(get "/*wildcard:"
+     (REQUEST setContentType:"text/plain")
+     (set wildcard ((REQUEST bindings) *wildcard:))
+     (if (eq wildcard "favicon.ico") (return nil))
+     "whatever")
+
+((((NSProcessInfo processInfo) processIdentifier) stringValue) writeToFile:"sampled.pid" atomically:NO)
+
+(Kurt run)
