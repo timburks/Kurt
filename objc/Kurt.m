@@ -397,7 +397,6 @@ int KurtMain(int argc, const char *argv[], NSString *KurtDelegateClassName)
         if ([Kurt verbose]) {
             [delegate dump];
         }
-        NSLog(@"Kurtd is running on port %d", port);
         [kurt run];
     }
     [pool drain];

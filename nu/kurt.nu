@@ -68,6 +68,7 @@
                 ;; the option(s) we need to set
                 (set port 3000)
                 (set localOnly NO)
+                (set site nil)
                 
                 ;; process the remaining arguments
                 (while (< argi (argv count))
@@ -76,19 +77,25 @@
                              ("--port"    (set argi (+ argi 1)) (set port ((argv argi) intValue)))
                              ("-l"        (set localOnly YES))
                              ("--local"   (set localOnly YES))
+                             ("-s"        (set argi (+ argi 1)) (set site (argv argi)))
+                             ("--site"    (set argi (+ argi 1)) (set site (argv argi)))
                              ("-v"        (Kurt setVerbose:YES))
                              ("--verbose" (Kurt setVerbose:YES))
                              (else (puts (+ "unknown option: " (argv argi)))
                                    (exit -1)))
                        (set argi (+ argi 1)))
                 
-                (set kurt (Kurt bareKurt))
-                (if (eq (kurt bindToAddress:(if localOnly (then "127.0.0.1") (else "0.0.0.0"))
-                              port:port) 0)
-                    (then (puts (+ "Kurt is running on port " port)))
-                    (else (puts (+ "Unable to start service on port " port ". Is another server running?")
-                                (exit -1))))
-                (set _kurt kurt))
+                (set _kurt (Kurt bareKurt))
+                
+                (if site
+                    ((_kurt delegate) configureSite:site))
+                
+                (unless (zero? (_kurt bindToAddress:(if localOnly
+                                                        (then "127.0.0.1")
+                                                        (else "0.0.0.0"))
+                                      port:port))
+                        (puts (+ "Unable to start service on port " port ". Is another server running?"))
+                        (exit -1)))
         _kurt)
      
      (+ (void) run is

@@ -2,19 +2,19 @@
  @file KurtDelegate.m
  @discussion Kurt web server default delegate.
  @copyright Copyright (c) 2010 Neon Design Technology, Inc.
- 
+
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
  You may obtain a copy of the License at
- 
+
  http://www.apache.org/licenses/LICENSE-2.0
- 
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
- */
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 
 #import "KurtMain.h"
 #import "KurtDelegate.h"
@@ -44,10 +44,11 @@ static KurtDefaultDelegate *_sharedDelegate;
     id parser = [Nu parser];
 
     // set working directory to site path
-    chdir([site cStringUsingEncoding:NSUTF8StringEncoding]);
+    NSString *directory = [site stringByDeletingLastPathComponent];
+    chdir([directory cStringUsingEncoding:NSUTF8StringEncoding]);
 
     // load site description
-    NSString *filename = [NSString stringWithFormat:@"site.nu", site];
+    NSString *filename = [[site pathComponents] lastObject];
     NSString *sourcecode = [NSString stringWithContentsOfFile:filename
         encoding:NSUTF8StringEncoding
         error:nil];
@@ -55,7 +56,6 @@ static KurtDefaultDelegate *_sharedDelegate;
         [parser parseEval:sourcecode];
     }
 }
-
 
 - (void) setDefaultHandlerWithBlock:(id) block
 {
@@ -102,7 +102,7 @@ static KurtDefaultDelegate *_sharedDelegate;
     BOOL handled = NO;
 
     if (!handled) {
-		handled = [router routeAndHandleRequest:request parts:parts level:0];
+        handled = [router routeAndHandleRequest:request parts:parts level:0];
     }
 
     if (!handled) {                               // does the path end in a '/'? If so, append index.html
