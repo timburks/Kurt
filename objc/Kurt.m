@@ -282,6 +282,13 @@ void kurt_http_request_done(struct evhttp_request *req, void *arg)
 
 static Kurt *sharedKurt = nil;
 
++ (Kurt *) kurt 
+{
+	NSLog(@"[Kurt kurt] should be overridden in nu/kurt.nu; is Kurt installed correctly?");
+	assert(0);
+	return nil;
+}
+
 + (Kurt *) bareKurt
 {
     if (!sharedKurt)

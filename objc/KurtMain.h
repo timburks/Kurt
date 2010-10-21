@@ -21,9 +21,12 @@
 
 @class KurtRequest;
 
-@protocol KurtDelegate
+@protocol KurtDelegate <NSObject>
 // Override this to perform Objective-C setup of your Kurt.
 - (void) applicationDidFinishLaunching;
+
+// Load a Nu source file containing a site description and chdir to the containing directory.
+- (void) configureSite:(NSString *) site;
 
 // Call this within applicationDidFinishLaunching to add a handler.
 // The block argument can be a Nu or Objective-C block.

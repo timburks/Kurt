@@ -28,16 +28,6 @@
 (compilation-tasks)
 (framework-tasks)
 
-(task "clean" is 
-      (SH "rm -rf build")
-      (SH "rm -rf MacOS/*/*.xcodeproj/*.mode1v3")
-      (SH "rm -rf MacOS/*/*.xcodeproj/*.pbxuser")
-      (SH "rm -rf MacOS/*/build"))
-
-(task "clobber" => "clean" is
-      (SH "rm -rf #{@framework_dir}"))
-
 (task "default" => "framework")
 
 (task "doc" is (SH "nudoc"))
-
