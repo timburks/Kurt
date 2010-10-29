@@ -115,11 +115,23 @@ static void sig_pipe(int signo)
     NSLog(@"SIGPIPE: lost connection during write. (signal %d)", signo);
 }
 
+struct event_base *gevent_base;
+
+static void sig_int(int sig)
+{
+    signal(sig, SIG_IGN);
+    event_base_loopexit(gevent_base, NULL); // exits libevent loop
+}
+
 - (void) run
 {
-	if (verbose_kurt && ([delegate respondsToSelector:@selector(dump)])) {
-		[delegate dump];
-	}	
+    if (verbose_kurt && ([delegate respondsToSelector:@selector(dump)])) {
+        [delegate dump];
+    }
+
+    gevent_base = event_base;
+    signal(SIGINT, sig_int);
+
     if (signal(SIGPIPE, sig_pipe) == SIG_ERR) {
         NSLog(@"failed to setup SIGPIPE handler.");
     }
@@ -282,11 +294,11 @@ void kurt_http_request_done(struct evhttp_request *req, void *arg)
 
 static Kurt *sharedKurt = nil;
 
-+ (Kurt *) kurt 
++ (Kurt *) kurt
 {
-	NSLog(@"[Kurt kurt] should be overridden in nu/kurt.nu; is Kurt installed correctly?");
-	assert(0);
-	return nil;
+    NSLog(@"[Kurt kurt] should be overridden in nu/kurt.nu; is Kurt installed correctly?");
+    assert(0);
+    return nil;
 }
 
 + (Kurt *) bareKurt
