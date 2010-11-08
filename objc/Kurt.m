@@ -365,7 +365,7 @@ int KurtMain(int argc, const char *argv[], NSString *KurtDelegateClassName)
 {
     NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
 
-    int port = 5000;
+    int port = 3000;
     NSString *site = @".";
 
     BOOL localOnly = NO;
