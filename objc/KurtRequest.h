@@ -33,6 +33,7 @@
     int _responded;
     int _responseCode;
     NSString *_responseMessage;
+	NSData *_body;
 }
 
 - (id) initWithKurt:(Kurt *)n request:(struct evhttp_request *)r;
@@ -45,6 +46,7 @@
 - (id) bindings;
 - (void) setBindings:(id) bindings;
 - (NSData *) body;
+- (void) setBody:(NSData *) body;
 - (NSString *) HTTPMethod;
 - (NSString *) remoteHost;
 - (int) remotePort;

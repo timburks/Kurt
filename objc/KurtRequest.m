@@ -82,6 +82,8 @@ NSDictionary *kurt_request_headers_helper(struct evhttp_request *req);
         NSString *queryString = [_uri substringWithRange:NSMakeRange(base, i-base)];
         _query = [[queryString urlQueryDictionary] retain];
     }
+	// set the body data
+	[self initializeBody];
     // we haven't responded yet
     _responded = NO;
     // default response code is that everything is ok
@@ -98,6 +100,7 @@ NSDictionary *kurt_request_headers_helper(struct evhttp_request *req);
     [_query release];
     [_bindings release];
     [_cookies release];
+	[_body release];
     [super dealloc];
 }
 
@@ -148,16 +151,27 @@ NSDictionary *kurt_request_headers_helper(struct evhttp_request *req);
     _bindings = bindings;
 }
 
-- (NSData *) body
+- (void) initializeBody
 {
 	int length = evbuffer_get_length(req->input_buffer);
     if (!length)
-        return nil;
+        [self setBody:nil];
     else {
 		unsigned char *bytes = evbuffer_pullup(req->input_buffer, -1);
-        NSData *data = [NSData dataWithBytes:bytes length:length];
-        return data;
+        [self setBody:[NSData dataWithBytes:bytes length:length]];
     }
+}
+
+- (NSData *) body 
+{
+	return _body;
+}
+
+- (void) setBody:(NSData *) b 
+{
+	[b retain];
+	[_body release];
+	_body = b;
 }
 
 - (NSString *) HTTPMethod
