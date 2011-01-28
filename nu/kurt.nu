@@ -133,6 +133,7 @@
             "lzh"   "application/octet-stream"
             "mobileconfig"   "application/x-apple-aspen-config"
             "mov"   "video/quicktime"
+            "mp4" "video/mp4"
             "mpe"   "video/mpeg"
             "mpeg"  "video/mpeg"
             "mpg"   "video/mpeg"
