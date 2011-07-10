@@ -73,7 +73,7 @@
 
     static id text_html_pattern = nil;
     if (!text_html_pattern) {
-        text_html_pattern = [[NuRegex regexWithPattern:@"^text/html.*$"] retain];
+        text_html_pattern = [[NSRegularExpression regexWithPattern:@"^text/html.*$"] retain];
     }
 
     id content_type;

@@ -339,9 +339,9 @@ void kurt_response_helper(struct evhttp_request *req, int code, NSString *messag
 
 - (NSDictionary *) cookies
 {
-    static NuRegex *cookie_pattern = nil;
+    static NSRegularExpression *cookie_pattern = nil;
     if (!cookie_pattern) {
-        cookie_pattern = [[NuRegex regexWithPattern:@"[ ]*([^=]*)=(.*)"] retain];
+        cookie_pattern = [[NSRegularExpression regexWithPattern:@"[ ]*([^=]*)=(.*)"] retain];
     }
     if (!_cookies) {
         _cookies = [[NSMutableDictionary alloc] init];

@@ -9,7 +9,8 @@
                (set @cflags "-g -std=gnu99 -fobjc-gc -DDARWIN")
                (set @ldflags  "-framework Foundation -framework Nu -lcrypto")
 	       ;; explicitly link the non-shared libs for portability
-               (@ldflags appendString:" /usr/local/lib/libevent.a /usr/local/lib/libevent_core.a"))
+               (@ldflags appendString:" /usr/local/lib/libevent.a /usr/local/lib/libevent_core.a")
+)
       ("Linux"
               (set @arch (list "i386"))
               (set gnustep_flags ((NSString stringWithShellCommand:"gnustep-config --objc-flags") chomp))

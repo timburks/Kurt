@@ -9,7 +9,7 @@
 
 (class TestServer is NuTestCase
      (- setup is
-        (system "cd sample; sampled -p 3000 &")
+        (system "cd sample; ./sampled -p 3000 &")
         (until ((NSFileManager defaultManager) fileExistsAtPath:"sample/sampled.pid")
                (sleep 1)))
      
@@ -28,7 +28,7 @@
         
         ;; test regular expression action handler
         (assert_equal "more-stuff" (NSString stringWithShellCommand:"curl -s http://localhost:3000/foo/more-stuff"))
-        (assert_equal "anything&^%$#@!goes" (NSString stringWithShellCommand:"curl -s 'http://localhost:3000/foo/anything&^%$#@!goes'"))
+        (assert_equal "anything&^%$@!goes" (NSString stringWithShellCommand:"curl -s 'http://localhost:3000/foo/anything&^%$@!goes'"))
         
         ;; test query parameters
         (assert_equal "a:123,b:456,c:789" (NSString stringWithShellCommand:"curl -s 'http://localhost:3000/get?a=123&b=456&c=789'"))

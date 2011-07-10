@@ -23,8 +23,6 @@
 ;; @class UserCookie
 ;; @discussion A class for managing user-identifying cookies.
 (class UserCookie is NSObject
-     (ivars)
-     (ivar-accessors)
      
      ;; Generate a random identifier for use in a cookie.
      (+ (id) randomIdentifier is

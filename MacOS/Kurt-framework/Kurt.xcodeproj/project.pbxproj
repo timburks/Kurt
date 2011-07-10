@@ -374,6 +374,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = Kurt;
+				SDKROOT = macosx;
 			};
 			name = Debug;
 		};
@@ -400,6 +401,7 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = Kurt;
+				SDKROOT = macosx;
 				ZERO_LINK = NO;
 			};
 			name = Release;
