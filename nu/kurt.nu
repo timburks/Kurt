@@ -15,41 +15,45 @@
 ;;   limitations under the License.
 
 ;; Declare a get action.
-(global get
-        (macro get (path *body)
-             `(((Kurt kurt) delegate)
-               addHandlerWithHTTPMethod:"GET"
-               path:,path
-               block:(do (REQUEST) ,@*body))))
+(macro get (path *body)
+     `(((Kurt kurt) delegate)
+       addHandlerWithHTTPMethod:"GET"
+       path:,path
+       block:(do (REQUEST)
+                 ((REQUEST bindings) each:(do (key value) (_parser setValue:value forKey:key)))
+                 ,@*body)))
 
 ;; Declare a post action.
-(global post
-        (macro post (path *body)
-             `(((Kurt kurt) delegate)
-               addHandlerWithHTTPMethod:"POST"
-               path:,path
-               block:(do (REQUEST) ,@*body))))
+(macro post (path *body)
+     `(((Kurt kurt) delegate)
+       addHandlerWithHTTPMethod:"POST"
+       path:,path
+       block:(do (REQUEST)
+                 ((REQUEST bindings) each:(do (key value) (_parser setValue:value forKey:key)))
+                 ,@*body)))
 
 ;; Declare a put action.
-(global put
-        (macro put (path *body)
-             `(((Kurt kurt) delegate)
-               addHandlerWithHTTPMethod:"PUT"
-               path:,path
-               block:(do (REQUEST) ,@*body))))
+(macro put (path *body)
+     `(((Kurt kurt) delegate)
+       addHandlerWithHTTPMethod:"PUT"
+       path:,path
+       block:(do (REQUEST)
+                 ((REQUEST bindings) each:(do (key value) (_parser setValue:value forKey:key)))
+                 ,@*body)))
 
 ;; Declare a delete action.
-(global delete
-        (macro delete (path *body)
-             `(((Kurt kurt) delegate)
-               addHandlerWithHTTPMethod:"DELETE"
-               path:,path
-               block:(do (REQUEST) ,@*body))))
+(macro delete (path *body)
+     `(((Kurt kurt) delegate)
+       addHandlerWithHTTPMethod:"DELETE"
+       path:,path
+       block:(do (REQUEST)
+                 ((REQUEST bindings) each:(do (key value) (_parser setValue:value forKey:key)))
+                 ,@*body)))
 
 ;; Declare a 404 handler.
-(global get-404 (macro get-404 (*body)
-                     `(((Kurt kurt) delegate)
-                       setDefaultHandlerWithBlock:(do (REQUEST) ,@*body))))
+(macro get-404 (*body)
+     `(((Kurt kurt) delegate)
+       setDefaultHandlerWithBlock:(do (REQUEST) ,@*body)))
 
 (class Kurt
      (set _kurt nil)
